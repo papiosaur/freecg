@@ -20,7 +20,7 @@
 #include "gfx.h"
 #include <errno.h>
 #include <assert.h>
-#include <SDL/SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 SDL_Surface *load_gfx(const char *path)
 {
@@ -64,15 +64,22 @@ SDL_Surface *load_gfx(const char *path)
 		SDL_FreeRW(rw);
 		goto cleanup;
 	};
-	SDL_SetColorKey(bmp, SDL_SRCCOLORKEY,
+	
+	// Modification 1: SDL_SRCCOLORKEY est remplacé par SDL_TRUE dans SDL2
+	SDL_SetColorKey(bmp, SDL_TRUE,
 			SDL_MapRGB(bmp->format, 179, 179, 0));
 	SDL_FreeRW(rw);
-	gfx = SDL_CreateRGBSurface(SDL_SWSURFACE,
+	
+	// Modification 2: SDL_SWSURFACE est obsolète, utiliser 0 à la place
+	gfx = SDL_CreateRGBSurface(0,
 			TILESET_W+160+STRIPE_END_W, TILESET_H,
 			32, RMASK, GMASK, BMASK, AMASK);
 	SDL_BlitSurface(bmp, NULL, gfx, NULL);
-	/* Make sure all next blits copy all channels, including alpha */
-	SDL_SetAlpha(gfx, 0, 255);
+	
+	// Modification 3: SDL_SetAlpha est remplacé par SDL_SetSurfaceAlphaMod
+	SDL_SetSurfaceAlphaMod(gfx, 255);
+	SDL_SetSurfaceBlendMode(gfx, SDL_BLENDMODE_NONE);
+	
 	fix_transparency(gfx, 0, 0, TILESET_W, TILESET_H);
 	/* attach fixed airport stripes to the right */
 	for (int i = 0; i < 8; ++i)
@@ -88,14 +95,19 @@ cleanup:
 SDL_Surface *load_png(const char *path)
 {
 	SDL_RWops *rw = SDL_RWFromFile(path, "rb");
-	SDL_Surface *png = IMG_LoadPNG_RW(rw);
+	
+	// Modification 4: IMG_LoadPNG_RW est remplacé par IMG_LoadPNG 
+	// qui n'est plus présent dans SDL2_image, utiliser IMG_Load_RW à la place
+	SDL_Surface *png = IMG_Load_RW(rw, 1); // 1 = fermer rw automatiquement
 	if (!png) {
-		SDL_SetError("IMG_LoadPNG_RW: %s", IMG_GetError());
-		goto cleanup;
+		SDL_SetError("IMG_Load_RW: %s", IMG_GetError());
+		return NULL; // Plus besoin du goto cleanup car rw est fermé automatiquement
 	}
-	SDL_SetAlpha(png, 0, 255);
-cleanup:
-	SDL_FreeRW(rw);
+	
+	// Modification 5: SDL_SetAlpha est remplacé par SDL_SetSurfaceAlphaMod
+	SDL_SetSurfaceAlphaMod(png, 255);
+	SDL_SetSurfaceBlendMode(png, SDL_BLENDMODE_NONE);
+	
 	return png;
 }
 

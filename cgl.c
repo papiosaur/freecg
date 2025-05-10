@@ -20,7 +20,7 @@
 #include "cgl.h"
 #include "cg.h"
 #include "mathgeom.h"
-#include <SDL/SDL_error.h>
+#include <SDL2/SDL_error.h>
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>

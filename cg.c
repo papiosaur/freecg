@@ -23,6 +23,8 @@
 #include <math.h>
 #include <float.h>
 #include <assert.h>
+#include "sound.h"
+#include <SDL2/SDL.h>
 
 collision_map cmap;
 
@@ -62,6 +64,7 @@ void cg_ship_init(struct cgl *l)
 void cg_ship_set_engine(struct ship *ship, int eng)
 {
 	ship->engine = eng && ship->fuel > 0;
+	sound_play_engine(ship->engine);
 }
 void cg_ship_step(struct ship* s, double dt)
 {
@@ -99,6 +102,7 @@ void cg_ship_kill(struct cgl *l)
 {
 	l->ship->dead = 1;
 	l->kaboom_end = l->time + 1;
+	sound_play_collision();
 }
 void cg_ship_rotate(struct ship *s, double delta)
 {
@@ -343,7 +347,10 @@ int cg_handle_collision_airport(struct ship *ship, struct airport *airport)
 			cg_collision_rect_point(&stile, &allowed) &&
 			abs(ship->vx) < ship->max_vx &&
 			abs(ship->vy) < ship->max_vy)
-		airport->ship_touched = 1;
+			{
+			airport->ship_touched = 1;
+			sound_play_landing();
+			}
 	else
 		return 1;
 	return 0;
@@ -541,6 +548,7 @@ void cg_step_airport(struct airport *airport, struct ship *ship, double time)
 		case Key:
 			ship->keys[airport->c.key] = 1;
 			airport_pop_cargo(airport);
+			sound_play_key();
 			break;
 		case Extras:
 			switch (airport->c.extras[airport->num_cargo - 1]) {
@@ -551,17 +559,21 @@ void cg_step_airport(struct airport *airport, struct ship *ship, double time)
 			case Life:
 				++ship->life; break;
 			}
+			sound_play_extra();
 			airport_pop_cargo(airport);
 			break;
 		case Freight:
 			ship_load_freight(ship, airport);
+			sound_play_pickup();
 			break;
 		case Homebase:
 			ship_unload_freight(ship, airport);
+		    sound_play_dropitem();
 			break;
 		case Fuel:
 			ship->fuel = min(MAX_FUEL, ship->fuel + FUEL_BARREL);
 			airport_pop_cargo(airport);
+			sound_play_fuel();
 			break;
 		}
 	}

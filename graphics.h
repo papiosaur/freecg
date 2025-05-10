@@ -22,8 +22,8 @@
 
 #include "cg.h"
 #include "texmgr.h"
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 
 struct camera {
 	double x, y;
@@ -46,6 +46,7 @@ extern struct glengine gl;
 
 void gl_init(struct cgl*, struct texmgr*, struct texmgr*, struct texmgr*);
 void gl_resize_viewport(double, double);
+void gl_set_window(SDL_Window *window);
 void gl_update_window(double);
 
 static inline void gl_bind_texture(struct texmgr *tm)

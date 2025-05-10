@@ -29,6 +29,9 @@
 struct glengine gl;
 void gl_draw_sprite(double, double, const struct tile*);
 
+// Ajout d'une variable globale pour stocker la fenêtre SDL
+SDL_Window *gl_window = NULL;
+
 void gl_init(struct cgl* l, struct texmgr *ttm, struct texmgr *ftm,
 		struct texmgr *otm)
 {
@@ -48,6 +51,13 @@ void gl_init(struct cgl* l, struct texmgr *ttm, struct texmgr *ftm,
 	osd_init();
 	SDL_ShowCursor(SDL_DISABLE);
 }
+
+// Mise à jour pour stocker la référence à la fenêtre
+void gl_set_window(SDL_Window *window)
+{
+    gl_window = window;
+}
+
 void gl_resize_viewport(double w, double h)
 {
 	gl.win_w = w, gl.win_h = h;
@@ -188,6 +198,13 @@ void gl_update_window(double time)
 	glLoadIdentity();
 	glTranslated(0, 0, 2);
 	gl_draw_osd(time);
-	SDL_GL_SwapBuffers();
+	
+	// Remplacer SDL_GL_SwapBuffers() par SDL_GL_SwapWindow()
+	if (gl_window) {
+		SDL_GL_SwapWindow(gl_window);
+	} else {
+		fprintf(stderr, "Error: Window not set for gl_update_window\n");
+	}
+	
 	gl.time = time;
 }
